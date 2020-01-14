@@ -267,7 +267,7 @@ import './src/component/visualMapPiecewise';
 
 
 // Provide IE 6,7,8 compatibility.
-// import 'zrender/src/vml/vml';
+import 'zrender/esm/vml/vml';
 
 // Render via SVG rather than canvas.
 import 'zrender/esm/svg/svg';
