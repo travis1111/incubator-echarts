@@ -17,8 +17,8 @@
 * under the License.
 */
 
-import * as curveTool from 'zrender/src/core/curve';
-import * as vec2 from 'zrender/src/core/vector';
+import * as curveTool from 'zrender/esm/core/curve';
+import * as vec2 from 'zrender/esm/core/vector';
 import {getSymbolSize} from './graphHelper';
 
 var v1 = [];

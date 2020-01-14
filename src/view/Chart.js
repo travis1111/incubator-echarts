@@ -17,8 +17,8 @@
 * under the License.
 */
 
-import {each} from 'zrender/src/core/util';
-import Group from 'zrender/src/container/Group';
+import {each} from 'zrender/esm/core/util';
+import Group from 'zrender/esm/container/Group';
 import * as componentUtil from '../util/component';
 import * as clazzUtil from '../util/clazz';
 import * as modelUtil from '../util/model';

@@ -18,11 +18,11 @@
 */
 
 import {__DEV__} from '../../config';
-import {each, createHashMap} from 'zrender/src/core/util';
+import {each, createHashMap} from 'zrender/esm/core/util';
 import mapDataStorage from './mapDataStorage';
 import geoJSONLoader from './geoJSONLoader';
 import geoSVGLoader from './geoSVGLoader';
-import BoundingRect from 'zrender/src/core/BoundingRect';
+import BoundingRect from 'zrender/esm/core/BoundingRect';
 
 var loaders = {
     geoJSON: geoJSONLoader,

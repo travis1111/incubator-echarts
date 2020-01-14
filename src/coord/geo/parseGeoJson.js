@@ -22,7 +22,7 @@
  * @module echarts/coord/geo/parseGeoJson
  */
 
-import * as zrUtil from 'zrender/src/core/util';
+import * as zrUtil from 'zrender/esm/core/util';
 import Region from './Region';
 
 function decode(json) {

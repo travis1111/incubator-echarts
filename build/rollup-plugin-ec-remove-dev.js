@@ -32,7 +32,7 @@
  */
 
 const babel = require('@babel/core');
-const removeDEVPlugin = require('zrender/build/babel-plugin-transform-remove-dev');
+const removeDEVPlugin = require('./babel-plugin-transform-remove-dev');
 
 /**
  * @param {Object} [opt]

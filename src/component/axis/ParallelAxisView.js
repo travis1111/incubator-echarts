@@ -18,7 +18,7 @@
 */
 
 import * as echarts from '../../echarts';
-import * as zrUtil from 'zrender/src/core/util';
+import * as zrUtil from 'zrender/esm/core/util';
 import AxisBuilder from './AxisBuilder';
 import BrushController from '../helper/BrushController';
 import * as brushHelper from '../helper/brushHelper';

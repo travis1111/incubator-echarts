@@ -24,7 +24,7 @@
 import SingleAxis from './SingleAxis';
 import * as axisHelper from '../axisHelper';
 import {getLayoutRect} from '../../util/layout';
-import {each} from 'zrender/src/core/util';
+import {each} from 'zrender/esm/core/util';
 
 /**
  * Create a single coordinates system.

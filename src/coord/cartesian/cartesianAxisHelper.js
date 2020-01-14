@@ -17,7 +17,7 @@
 * under the License.
 */
 
-import * as zrUtil from 'zrender/src/core/util';
+import * as zrUtil from 'zrender/esm/core/util';
 
 /**
  * Can only be called after coordinate system creation stage.

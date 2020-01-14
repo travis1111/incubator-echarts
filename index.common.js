@@ -68,6 +68,6 @@ require("./lib/component/dataZoom");
 
 require("./lib/component/toolbox");
 
-require("zrender/lib/vml/vml");
+// require("zrender/lib/vml/vml");
 
 require("zrender/lib/svg/svg");

@@ -23,7 +23,7 @@
 
 import * as graphic from '../../util/graphic';
 import LineGroup from './Line';
-// import IncrementalDisplayable from 'zrender/src/graphic/IncrementalDisplayable';
+// import IncrementalDisplayable from 'zrender/esm/graphic/IncrementalDisplayable';
 
 /**
  * @alias module:echarts/component/marker/LineDraw

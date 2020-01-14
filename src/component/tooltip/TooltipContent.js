@@ -17,11 +17,11 @@
 * under the License.
 */
 
-import * as zrUtil from 'zrender/src/core/util';
-import * as zrColor from 'zrender/src/tool/color';
-import * as eventUtil from 'zrender/src/core/event';
-import * as domUtil from 'zrender/src/core/dom';
-import env from 'zrender/src/core/env';
+import * as zrUtil from 'zrender/esm/core/util';
+import * as zrColor from 'zrender/esm/tool/color';
+import * as eventUtil from 'zrender/esm/core/event';
+import * as domUtil from 'zrender/esm/core/dom';
+import env from 'zrender/esm/core/env';
 import * as formatUtil from '../../util/format';
 
 var each = zrUtil.each;

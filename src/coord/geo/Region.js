@@ -21,10 +21,10 @@
  * @module echarts/coord/geo/Region
  */
 
-import BoundingRect from 'zrender/src/core/BoundingRect';
-import * as bbox from 'zrender/src/core/bbox';
-import * as vec2 from 'zrender/src/core/vector';
-import * as polygonContain from 'zrender/src/contain/polygon';
+import BoundingRect from 'zrender/esm/core/BoundingRect';
+import * as bbox from 'zrender/esm/core/bbox';
+import * as vec2 from 'zrender/esm/core/vector';
+import * as polygonContain from 'zrender/esm/contain/polygon';
 
 /**
  * @param {string|Region} name

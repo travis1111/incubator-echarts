@@ -21,11 +21,11 @@
  * Do not mount those modules on 'src/echarts' for better tree shaking.
  */
 
-import * as zrender from 'zrender/src/zrender';
-import * as matrix from 'zrender/src/core/matrix';
-import * as vector from 'zrender/src/core/vector';
-import * as zrUtil from 'zrender/src/core/util';
-import * as colorTool from 'zrender/src/tool/color';
+import * as zrender from 'zrender/esm/zrender';
+import * as matrix from 'zrender/esm/core/matrix';
+import * as vector from 'zrender/esm/core/vector';
+import * as zrUtil from 'zrender/esm/core/util';
+import * as colorTool from 'zrender/esm/tool/color';
 import * as graphicUtil from './util/graphic';
 import * as numberUtil from './util/number';
 import * as formatUtil from './util/format';
@@ -45,7 +45,7 @@ export {ecHelper as helper};
 export {matrix};
 export {vector};
 export {colorTool as color};
-export {default as env} from 'zrender/src/core/env';
+export {default as env} from 'zrender/esm/core/env';
 
 export {parseGeoJSON};
 export var parseGeoJson = parseGeoJSON;

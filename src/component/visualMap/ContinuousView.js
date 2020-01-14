@@ -17,9 +17,9 @@
 * under the License.
 */
 
-import * as zrUtil from 'zrender/src/core/util';
-import LinearGradient from 'zrender/src/graphic/LinearGradient';
-import * as eventTool from 'zrender/src/core/event';
+import * as zrUtil from 'zrender/esm/core/util';
+import LinearGradient from 'zrender/esm/graphic/LinearGradient';
+import * as eventTool from 'zrender/esm/core/event';
 import VisualMapView from './VisualMapView';
 import * as graphic from '../../util/graphic';
 import * as numberUtil from '../../util/number';

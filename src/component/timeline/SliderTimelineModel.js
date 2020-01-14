@@ -17,7 +17,7 @@
 * under the License.
 */
 
-import * as zrUtil from 'zrender/src/core/util';
+import * as zrUtil from 'zrender/esm/core/util';
 import TimelineModel from './TimelineModel';
 import dataFormatMixin from '../../model/mixin/dataFormat';
 

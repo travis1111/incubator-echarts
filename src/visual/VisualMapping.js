@@ -17,8 +17,8 @@
 * under the License.
 */
 
-import * as zrUtil from 'zrender/src/core/util';
-import * as zrColor from 'zrender/src/tool/color';
+import * as zrUtil from 'zrender/esm/core/util';
+import * as zrColor from 'zrender/esm/tool/color';
 import {linearMap} from '../util/number';
 
 var each = zrUtil.each;

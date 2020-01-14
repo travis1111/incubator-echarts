@@ -19,9 +19,9 @@
 
 // Poly path support NaN point
 
-import Path from 'zrender/src/graphic/Path';
-import * as vec2 from 'zrender/src/core/vector';
-import fixClipWithShadow from 'zrender/src/graphic/helper/fixClipWithShadow';
+import Path from 'zrender/esm/graphic/Path';
+import * as vec2 from 'zrender/esm/core/vector';
+import fixClipWithShadow from 'zrender/esm/graphic/helper/fixClipWithShadow';
 
 var vec2Min = vec2.min;
 var vec2Max = vec2.max;

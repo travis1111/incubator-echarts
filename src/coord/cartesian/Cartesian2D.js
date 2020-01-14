@@ -18,8 +18,8 @@
 */
 
 
-import * as zrUtil from 'zrender/src/core/util';
-import BoundingRect from 'zrender/src/core/BoundingRect';
+import * as zrUtil from 'zrender/esm/core/util';
+import BoundingRect from 'zrender/esm/core/BoundingRect';
 import Cartesian from './Cartesian';
 
 function Cartesian2D(name) {

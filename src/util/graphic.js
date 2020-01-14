@@ -17,31 +17,31 @@
 * under the License.
 */
 
-import * as zrUtil from 'zrender/src/core/util';
-import * as pathTool from 'zrender/src/tool/path';
-import * as colorTool from 'zrender/src/tool/color';
-import * as matrix from 'zrender/src/core/matrix';
-import * as vector from 'zrender/src/core/vector';
-import Path from 'zrender/src/graphic/Path';
-import Transformable from 'zrender/src/mixin/Transformable';
-import ZImage from 'zrender/src/graphic/Image';
-import Group from 'zrender/src/container/Group';
-import Text from 'zrender/src/graphic/Text';
-import Circle from 'zrender/src/graphic/shape/Circle';
-import Sector from 'zrender/src/graphic/shape/Sector';
-import Ring from 'zrender/src/graphic/shape/Ring';
-import Polygon from 'zrender/src/graphic/shape/Polygon';
-import Polyline from 'zrender/src/graphic/shape/Polyline';
-import Rect from 'zrender/src/graphic/shape/Rect';
-import Line from 'zrender/src/graphic/shape/Line';
-import BezierCurve from 'zrender/src/graphic/shape/BezierCurve';
-import Arc from 'zrender/src/graphic/shape/Arc';
-import CompoundPath from 'zrender/src/graphic/CompoundPath';
-import LinearGradient from 'zrender/src/graphic/LinearGradient';
-import RadialGradient from 'zrender/src/graphic/RadialGradient';
-import BoundingRect from 'zrender/src/core/BoundingRect';
-import IncrementalDisplayable from 'zrender/src/graphic/IncrementalDisplayable';
-import * as subPixelOptimizeUtil from 'zrender/src/graphic/helper/subPixelOptimize';
+import * as zrUtil from 'zrender/esm/core/util';
+import * as pathTool from 'zrender/esm/tool/path';
+import * as colorTool from 'zrender/esm/tool/color';
+import * as matrix from 'zrender/esm/core/matrix';
+import * as vector from 'zrender/esm/core/vector';
+import Path from 'zrender/esm/graphic/Path';
+import Transformable from 'zrender/esm/core/Transformable';
+import ZImage from 'zrender/esm/graphic/Image';
+import Group from 'zrender/esm/container/Group';
+import Text from 'zrender/esm/graphic/Text';
+import Circle from 'zrender/esm/graphic/shape/Circle';
+import Sector from 'zrender/esm/graphic/shape/Sector';
+import Ring from 'zrender/esm/graphic/shape/Ring';
+import Polygon from 'zrender/esm/graphic/shape/Polygon';
+import Polyline from 'zrender/esm/graphic/shape/Polyline';
+import Rect from 'zrender/esm/graphic/shape/Rect';
+import Line from 'zrender/esm/graphic/shape/Line';
+import BezierCurve from 'zrender/esm/graphic/shape/BezierCurve';
+import Arc from 'zrender/esm/graphic/shape/Arc';
+import CompoundPath from 'zrender/esm/graphic/CompoundPath';
+import LinearGradient from 'zrender/esm/graphic/LinearGradient';
+import RadialGradient from 'zrender/esm/graphic/RadialGradient';
+import BoundingRect from 'zrender/esm/core/BoundingRect';
+import IncrementalDisplayable from 'zrender/esm/graphic/IncrementalDisplayable';
+import * as subPixelOptimizeUtil from 'zrender/esm/graphic/helper/subPixelOptimize';
 
 
 var mathMax = Math.max;
@@ -620,7 +620,7 @@ export function setAsHighDownDispatcher(el, asDispatcher) {
 }
 
 /**
- * @param {module:zrender/src/Element} el
+ * @param {module:zrender/esm/Element} el
  * @return {boolean}
  */
 export function isHighDownDispatcher(el) {
@@ -719,7 +719,7 @@ export function setLabelStyle(
  * Modify label style manually.
  * Only works after `setLabelStyle` and `setElementHoverStyle` called.
  *
- * @param {module:zrender/src/Element} el
+ * @param {module:zrender/esm/Element} el
  * @param {Object} [normalStyleProps] optional
  * @param {Object} [emphasisStyleProps] optional
  */
@@ -791,7 +791,7 @@ export function setText(textStyle, labelModel, defaultColor) {
  * to manage.)
  *
  * The `textStyle` object can either be a plain object or an instance of
- * `zrender/src/graphic/Style`, and either be the style of normal or emphasis.
+ * `zrender/esm/graphic/Style`, and either be the style of normal or emphasis.
  * After this mothod called, the `textStyle` object can then be used in
  * `el.setStyle(textStyle)` or `el.hoverStyle = textStyle`.
  *
@@ -997,7 +997,7 @@ function getAutoColor(color, opt) {
  * restore the style.
  *
  * Usage (& NOTICE):
- * When a style object (eithor plain object or instance of `zrender/src/graphic/Style`) is
+ * When a style object (eithor plain object or instance of `zrender/esm/graphic/Style`) is
  * about to be modified on its text related properties, `rollbackDefaultTextStyle` should
  * be called before the modification and `applyDefaultTextStyle` should be called after that.
  * (For the case that all of the text related properties is reset, like `setTextStyleCommon`
@@ -1167,8 +1167,8 @@ export function initProps(el, props, animatableModel, dataIndex, cb) {
  * Get transform matrix of target (param target),
  * in coordinate of its ancestor (param ancestor)
  *
- * @param {module:zrender/mixin/Transformable} target
- * @param {module:zrender/mixin/Transformable} [ancestor]
+ * @param {module:zrender/core/Transformable} target
+ * @param {module:zrender/core/Transformable} [ancestor]
  */
 export function getTransform(target, ancestor) {
     var mat = matrix.identity([]);

@@ -17,8 +17,8 @@
 * under the License.
 */
 
-import * as polygonContain from 'zrender/src/contain/polygon';
-import BoundingRect from 'zrender/src/core/BoundingRect';
+import * as polygonContain from 'zrender/esm/contain/polygon';
+import BoundingRect from 'zrender/esm/core/BoundingRect';
 import {linePolygonIntersect} from '../../util/graphic';
 
 // Key of the first level is brushType: `line`, `rect`, `polygon`.

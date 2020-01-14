@@ -17,8 +17,8 @@
 * under the License.
 */
 
-import * as zrUtil from 'zrender/src/core/util';
-import env from 'zrender/src/core/env';
+import * as zrUtil from 'zrender/esm/core/util';
+import env from 'zrender/esm/core/env';
 import {makeInner} from '../../util/model';
 
 var inner = makeInner();

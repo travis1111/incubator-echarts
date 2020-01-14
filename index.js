@@ -130,6 +130,6 @@ require("./lib/component/visualMapContinuous");
 
 require("./lib/component/visualMapPiecewise");
 
-require("zrender/lib/vml/vml");
+// require("zrender/lib/vml/vml");
 
 require("zrender/lib/svg/svg");

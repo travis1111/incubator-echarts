@@ -17,8 +17,8 @@
 * under the License.
 */
 
-import * as zrUtil from 'zrender/src/core/util';
-import BoundingRect from 'zrender/src/core/BoundingRect';
+import * as zrUtil from 'zrender/esm/core/util';
+import BoundingRect from 'zrender/esm/core/BoundingRect';
 import View from '../View';
 import geoSourceManager from './geoSourceManager';
 
@@ -57,7 +57,7 @@ function Geo(name, map, nameMap, invertLongitute) {
     this.regions = source.regions;
 
     /**
-     * @type {module:zrender/src/core/BoundingRect}
+     * @type {module:zrender/esm/core/BoundingRect}
      */
     this._rect = source.boundingRect;
 }

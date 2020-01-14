@@ -17,8 +17,8 @@
 * under the License.
 */
 
-import * as zrUtil from 'zrender/src/core/util';
-import * as textContain from 'zrender/src/contain/text';
+import * as zrUtil from 'zrender/esm/core/util';
+import * as textContain from 'zrender/esm/contain/text';
 import Axis from '../Axis';
 import {makeInner} from '../../util/model';
 

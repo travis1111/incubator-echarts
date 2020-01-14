@@ -20,7 +20,7 @@
 // Fix for 钓鱼岛
 
 // var Region = require('../Region');
-// var zrUtil = require('zrender/src/core/util');
+// var zrUtil = require('zrender/esm/core/util');
 
 // var geoCoord = [126, 25];
 

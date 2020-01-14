@@ -17,10 +17,10 @@
 * under the License.
 */
 
-import * as zrUtil from 'zrender/src/core/util';
-import * as textContain from 'zrender/src/contain/text';
+import * as zrUtil from 'zrender/esm/core/util';
+import * as textContain from 'zrender/esm/contain/text';
 import * as numberUtil from './number';
-// import Text from 'zrender/src/graphic/Text';
+// import Text from 'zrender/esm/graphic/Text';
 
 /**
  * 每三位默认加,格式化

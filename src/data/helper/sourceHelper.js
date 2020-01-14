@@ -30,7 +30,7 @@ import {
     isArrayLike,
     extend,
     assert
-} from 'zrender/src/core/util';
+} from 'zrender/esm/core/util';
 import Source from '../Source';
 
 import {

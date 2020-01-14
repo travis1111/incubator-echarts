@@ -27,8 +27,8 @@
 * </licenses/LICENSE-d3>).
 */
 
-import * as zrUtil from 'zrender/src/core/util';
-import BoundingRect from 'zrender/src/core/BoundingRect';
+import * as zrUtil from 'zrender/esm/core/util';
+import BoundingRect from 'zrender/esm/core/BoundingRect';
 import {parsePercent, MAX_SAFE_INTEGER} from '../../util/number';
 import * as layout from '../../util/layout';
 import * as helper from '../helper/treeHelper';

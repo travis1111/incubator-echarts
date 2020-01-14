@@ -17,9 +17,9 @@
 * under the License.
 */
 
-import * as zrUtil from 'zrender/src/core/util';
-// import Group from 'zrender/src/container/Group';
-import Text from 'zrender/src/graphic/Text';
+import * as zrUtil from 'zrender/esm/core/util';
+// import Group from 'zrender/esm/container/Group';
+import Text from 'zrender/esm/graphic/Text';
 
 /**
  * @alias module:echarts/component/tooltip/TooltipRichContent

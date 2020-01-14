@@ -17,7 +17,7 @@
 * under the License.
 */
 
-import * as vec2 from 'zrender/src/core/vector';
+import * as vec2 from 'zrender/esm/core/vector';
 import {getSymbolSize, getNodeGlobalScale} from './graphHelper';
 
 var PI = Math.PI;

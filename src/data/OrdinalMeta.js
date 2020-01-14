@@ -17,7 +17,7 @@
 * under the License.
 */
 
-import {createHashMap, isObject, map} from 'zrender/src/core/util';
+import {createHashMap, isObject, map} from 'zrender/esm/core/util';
 
 /**
  * @constructor

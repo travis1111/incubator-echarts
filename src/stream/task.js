@@ -17,7 +17,7 @@
 * under the License.
 */
 
-import {assert, isArray} from 'zrender/src/core/util';
+import {assert, isArray} from 'zrender/esm/core/util';
 import { __DEV__ } from '../config';
 
 /**

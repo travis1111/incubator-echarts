@@ -17,7 +17,7 @@
 * under the License.
 */
 
-import * as zrUtil from 'zrender/src/core/util';
+import * as zrUtil from 'zrender/esm/core/util';
 import lang from '../lang';
 import { retrieveRawValue } from '../data/helper/dataProvider';
 

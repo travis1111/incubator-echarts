@@ -17,12 +17,12 @@
 * under the License.
 */
 import {__DEV__} from './config';
-import * as zrender from 'zrender/src/zrender';
-import * as zrUtil from 'zrender/src/core/util';
-import * as colorTool from 'zrender/src/tool/color';
-import env from 'zrender/src/core/env';
-import timsort from 'zrender/src/core/timsort';
-import Eventful from 'zrender/src/mixin/Eventful';
+import * as zrender from 'zrender/esm/zrender';
+import * as zrUtil from 'zrender/esm/core/util';
+import * as colorTool from 'zrender/esm/tool/color';
+import env from 'zrender/esm/core/env';
+import timsort from 'zrender/esm/core/timsort';
+import Eventful from 'zrender/esm/core/Eventful';
 import GlobalModel from './model/Global';
 import ExtensionAPI from './ExtensionAPI';
 import CoordinateSystemManager from './CoordinateSystem';
@@ -2041,7 +2041,7 @@ export function init(dom, theme, opts) {
         // Check version
         if ((zrender.version.replace('.', '') - 0) < (dependencies.zrender.replace('.', '') - 0)) {
             throw new Error(
-                'zrender/src ' + zrender.version
+                'zrender/esm ' + zrender.version
                 + ' is too old for ECharts ' + version
                 + '. Current version need ZRender '
                 + dependencies.zrender + '+'

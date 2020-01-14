@@ -18,7 +18,7 @@
 */
 
 import {__DEV__} from '../config';
-import * as zrUtil from 'zrender/src/core/util';
+import * as zrUtil from 'zrender/esm/core/util';
 import OrdinalScale from '../scale/Ordinal';
 import IntervalScale from '../scale/Interval';
 import Scale from '../scale/Scale';
@@ -28,7 +28,7 @@ import {
     makeColumnLayout,
     retrieveColumnLayout
 } from '../layout/barGrid';
-import BoundingRect from 'zrender/src/core/BoundingRect';
+import BoundingRect from 'zrender/esm/core/BoundingRect';
 
 import '../scale/Time';
 import '../scale/Log';

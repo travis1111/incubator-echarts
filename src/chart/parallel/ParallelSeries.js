@@ -17,7 +17,7 @@
 * under the License.
 */
 
-import {each, createHashMap} from 'zrender/src/core/util';
+import {each, createHashMap} from 'zrender/esm/core/util';
 import SeriesModel from '../../model/Series';
 import createListFromArray from '../helper/createListFromArray';
 
