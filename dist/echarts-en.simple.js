@@ -17798,7 +17798,7 @@ function animateOrSetProps(isUpdate, el, props, animatableModel, dataIndex, cb) 
  * configuration in series.
  *
  * Caution: this method will stop previous animation.
- * So if do not use this method to one element twice before
+ * So do not use this method to one element twice before
  * animation starts, unless you know what you are doing.
  *
  * @param {module:zrender/Element} el
@@ -17824,7 +17824,7 @@ function updateProps(el, props, animatableModel, dataIndex, cb) {
  * configuration in series.
  *
  * Caution: this method will stop previous animation.
- * So if do not use this method to one element twice before
+ * So do not use this method to one element twice before
  * animation starts, unless you know what you are doing.
  *
  * @param {module:zrender/Element} el
@@ -24335,7 +24335,7 @@ function dataTaskReset(context) {
 
 function dataTaskProgress(param, context) {
     // Avoid repead cloneShallow when data just created in reset.
-    if (param.end > context.outputData.count()) {
+    if (context.outputData && param.end > context.outputData.count()) {
         context.model.getRawData().cloneShallow(context.outputData);
     }
 }
@@ -24472,8 +24472,11 @@ var createRenderPlanner = function () {
         var originalLarge = fields.large;
         var originalProgressive = fields.progressiveRender;
 
-        var large = fields.large = pipelineContext.large;
-        var progressive = fields.progressiveRender = pipelineContext.progressiveRender;
+        // FIXME: if the planner works on a filtered series, `pipelineContext` does not
+        // exists. See #11611 . Probably we need to modify this structure, see the comment
+        // on `performRawSeries` in `Schedular.js`.
+        var large = fields.large = pipelineContext && pipelineContext.large;
+        var progressive = fields.progressiveRender = pipelineContext && pipelineContext.progressiveRender;
 
         return !!((originalLarge ^ large) || (originalProgressive ^ progressive)) && 'reset';
     };
@@ -25587,6 +25590,14 @@ function performStageTasks(scheduler, stageHandlers, ecModel, payload, opt) {
                     task.dirty();
                 }
                 var performArgs = scheduler.getPerformArgs(task, opt.block);
+                // FIXME
+                // if intending to decalare `performRawSeries` in handlers, only
+                // stream-independent (specifically, data item independent) operations can be
+                // performed. Because is a series is filtered, most of the tasks will not
+                // be performed. A stream-dependent operation probably cause wrong biz logic.
+                // Perhaps we should not provide a separate callback for this case instead
+                // of providing the config `performRawSeries`. The stream-dependent operaions
+                // and stream-independent operations should better not be mixed.
                 performArgs.skip = !stageHandler.performRawSeries
                     && ecModel.isSeriesFiltered(task.context.model);
                 updatePayload(task, payload);
@@ -27383,7 +27394,7 @@ echartsProto.getRenderedCanvas = function (opts) {
  * Get svg data url
  * @return {string}
  */
-echartsProto.getSvgDataUrl = function () {
+echartsProto.getSvgDataURL = function () {
     if (!env$1.svgSupported) {
         return;
     }
@@ -27395,7 +27406,7 @@ echartsProto.getSvgDataUrl = function () {
         el.stopAnimation(true);
     });
 
-    return zr.painter.pathToDataUrl();
+    return zr.painter.toDataURL();
 };
 
 /**
@@ -27431,7 +27442,7 @@ echartsProto.getDataURL = function (opts) {
     });
 
     var url = this._zr.painter.getType() === 'svg'
-        ? this.getSvgDataUrl()
+        ? this.getSvgDataURL()
         : this.getRenderedCanvas(opts).toDataURL(
             'image/' + (opts && opts.type || 'png')
         );
@@ -27460,6 +27471,7 @@ echartsProto.getConnectedDataURL = function (opts) {
     if (!env$1.canvasSupported) {
         return;
     }
+    var isSvg = opts.type === 'svg';
     var groupId = this.group;
     var mathMin = Math.min;
     var mathMax = Math.max;
@@ -27474,9 +27486,9 @@ echartsProto.getConnectedDataURL = function (opts) {
 
         each$1(instances, function (chart, id) {
             if (chart.group === groupId) {
-                var canvas = chart.getRenderedCanvas(
-                    clone(opts)
-                );
+                var canvas = isSvg
+                    ? chart.getZr().painter.getSvgDom().innerHTML
+                    : chart.getRenderedCanvas(clone(opts));
                 var boundingRect = chart.getDom().getBoundingClientRect();
                 left = mathMin(boundingRect.left, left);
                 top = mathMin(boundingRect.top, top);
@@ -27497,38 +27509,61 @@ echartsProto.getConnectedDataURL = function (opts) {
         var width = right - left;
         var height = bottom - top;
         var targetCanvas = createCanvas();
-        targetCanvas.width = width;
-        targetCanvas.height = height;
-        var zr = init$1(targetCanvas);
-
-        // Background between the charts
-        if (opts.connectedBackgroundColor) {
-            zr.add(new Rect({
-                shape: {
-                    x: 0,
-                    y: 0,
-                    width: width,
-                    height: height
-                },
-                style: {
-                    fill: opts.connectedBackgroundColor
-                }
-            }));
-        }
-
-        each(canvasList, function (item) {
-            var img = new ZImage({
-                style: {
-                    x: item.left * dpr - left,
-                    y: item.top * dpr - top,
-                    image: item.dom
-                }
-            });
-            zr.add(img);
+        var zr = init$1(targetCanvas, {
+            renderer: isSvg ? 'svg' : 'canvas'
         });
-        zr.refreshImmediately();
+        zr.resize({
+            width: width,
+            height: height
+        });
 
-        return targetCanvas.toDataURL('image/' + (opts && opts.type || 'png'));
+        if (isSvg) {
+            var content = '';
+            each(canvasList, function (item) {
+                var x = item.left - left;
+                var y = item.top - top;
+                content += '<g transform="translate(' + x + ','
+                    + y + ')">' + item.dom + '</g>';
+            });
+            zr.painter.getSvgRoot().innerHTML = content;
+
+            if (opts.connectedBackgroundColor) {
+                zr.painter.setBackgroundColor(opts.connectedBackgroundColor);
+            }
+
+            zr.refreshImmediately();
+            return zr.painter.toDataURL();
+        }
+        else {
+            // Background between the charts
+            if (opts.connectedBackgroundColor) {
+                zr.add(new Rect({
+                    shape: {
+                        x: 0,
+                        y: 0,
+                        width: width,
+                        height: height
+                    },
+                    style: {
+                        fill: opts.connectedBackgroundColor
+                    }
+                }));
+            }
+
+            each(canvasList, function (item) {
+                var img = new ZImage({
+                    style: {
+                        x: item.left * dpr - left,
+                        y: item.top * dpr - top,
+                        image: item.dom
+                    }
+                });
+                zr.add(img);
+            });
+
+            zr.refreshImmediately();
+            return targetCanvas.toDataURL('image/' + (opts && opts.type || 'png'));
+        }
     }
     else {
         return this.getDataURL(opts);
@@ -36152,7 +36187,7 @@ var IntervalScale = Scale.extend({
 
         if (extent[0] < niceTickExtent[0]) {
             if (expandToNicedExtent) {
-                ticks.push(roundNumber(niceTickExtent[0] - interval));
+                ticks.push(roundNumber(niceTickExtent[0] - interval, intervalPrecision));
             }
             else {
                 ticks.push(extent[0]);
@@ -36178,7 +36213,7 @@ var IntervalScale = Scale.extend({
         var lastNiceTick = ticks.length ? ticks[ticks.length - 1] : niceTickExtent[1];
         if (extent[1] > lastNiceTick) {
             if (expandToNicedExtent) {
-                ticks.push(lastNiceTick + interval);
+                ticks.push(roundNumber(lastNiceTick + interval, intervalPrecision));
             }
             else {
                 ticks.push(extent[1]);
@@ -36726,11 +36761,6 @@ function layout(seriesType, ecModel) {
             var value = data.get(valueDim, idx);
             var baseValue = data.get(baseDim, idx);
 
-            // If dataZoom in filteMode: 'empty', the baseValue can be set as NaN in "axisProxy".
-            if (isNaN(value) || isNaN(baseValue)) {
-                continue;
-            }
-
             var sign = value >= 0 ? 'p' : 'n';
             var baseCoord = valueAxisStart;
 
@@ -36804,6 +36834,7 @@ var largeLayout = {
 
         var data = seriesModel.getData();
         var cartesian = seriesModel.coordinateSystem;
+        var coordLayout = cartesian.grid.getRect();
         var baseAxis = cartesian.getBaseAxis();
         var valueAxis = cartesian.getOtherAxis(baseAxis);
         var valueDim = data.mapDimension(valueAxis.dim);
@@ -36823,6 +36854,7 @@ var largeLayout = {
         function progress(params, data) {
             var count = params.count;
             var largePoints = new LargeArr(count * 2);
+            var largeBackgroundPoints = new LargeArr(count * 2);
             var largeDataIndices = new LargeArr(count);
             var dataIndex;
             var coord = [];
@@ -36836,7 +36868,11 @@ var largeLayout = {
 
                 coord = cartesian.dataToPoint(valuePair, null, coord);
                 // Data index might not be in order, depends on `progressiveChunkMode`.
+                largeBackgroundPoints[pointsOffset] = valueAxisHorizontal
+                    ? coordLayout.x + coordLayout.width : coord[0];
                 largePoints[pointsOffset++] = coord[0];
+                largeBackgroundPoints[pointsOffset] = valueAxisHorizontal
+                    ? coord[1] : coordLayout.y + coordLayout.height;
                 largePoints[pointsOffset++] = coord[1];
                 largeDataIndices[idxOffset++] = dataIndex;
             }
@@ -36844,8 +36880,10 @@ var largeLayout = {
             data.setLayout({
                 largePoints: largePoints,
                 largeDataIndices: largeDataIndices,
+                largeBackgroundPoints: largeBackgroundPoints,
                 barWidth: barWidth,
                 valueAxisStart: getValueAxisStart(baseAxis, valueAxis, false),
+                backgroundStart: valueAxisHorizontal ? coordLayout.x : coordLayout.y,
                 valueAxisHorizontal: valueAxisHorizontal
             });
         }
@@ -37369,17 +37407,6 @@ function getScaleExtent(scale, model) {
     // (2) When `needCrossZero` and all data is positive/negative, should it be ensured
     // that the results processed by boundaryGap are positive/negative?
 
-    if (min == null) {
-        min = scaleType === 'ordinal'
-            ? (axisDataLen ? 0 : NaN)
-            : originalExtent[0] - boundaryGap[0] * span;
-    }
-    if (max == null) {
-        max = scaleType === 'ordinal'
-            ? (axisDataLen ? axisDataLen - 1 : NaN)
-            : originalExtent[1] + boundaryGap[1] * span;
-    }
-
     if (min === 'dataMin') {
         min = originalExtent[0];
     }
@@ -37398,6 +37425,17 @@ function getScaleExtent(scale, model) {
             min: originalExtent[0],
             max: originalExtent[1]
         });
+    }
+
+    if (min == null) {
+        min = scaleType === 'ordinal'
+            ? (axisDataLen ? 0 : NaN)
+            : originalExtent[0] - boundaryGap[0] * span;
+    }
+    if (max == null) {
+        max = scaleType === 'ordinal'
+            ? (axisDataLen ? axisDataLen - 1 : NaN)
+            : originalExtent[1] + boundaryGap[1] * span;
     }
 
     (min == null || !isFinite(min)) && (min = NaN);
@@ -37490,8 +37528,24 @@ function adjustScaleForOverflow(min, max, model, barWidthAndOffset) {
 
 function niceScaleExtent(scale, model) {
     var extent = getScaleExtent(scale, model);
-    var fixMin = model.getMin() != null;
-    var fixMax = model.getMax() != null;
+    var min = model.getMin();
+    var max = model.getMax();
+    var originalExtent = scale.getExtent();
+
+    if (typeof min === 'function') {
+        min = min({
+            min: originalExtent[0],
+            max: originalExtent[1]
+        });
+    }
+
+    if (typeof max === 'function') {
+        max = max({
+            min: originalExtent[0],
+            max: originalExtent[1]
+        });
+    }
+
     var splitNumber = model.get('splitNumber');
 
     if (scale.type === 'log') {
@@ -37502,8 +37556,8 @@ function niceScaleExtent(scale, model) {
     scale.setExtent(extent[0], extent[1]);
     scale.niceExtent({
         splitNumber: splitNumber,
-        fixMin: fixMin,
-        fixMax: fixMax,
+        fixMin: min != null,
+        fixMax: max != null,
         minInterval: (scaleType === 'interval' || scaleType === 'time')
             ? model.get('minInterval') : null,
         maxInterval: (scaleType === 'interval' || scaleType === 'time')
@@ -41082,6 +41136,117 @@ function layout$1(gridModel, axisModel, opt) {
 * under the License.
 */
 
+function rectCoordAxisBuildSplitArea(axisView, axisGroup, axisModel, gridModel) {
+    var axis = axisModel.axis;
+
+    if (axis.scale.isBlank()) {
+        return;
+    }
+
+    var splitAreaModel = axisModel.getModel('splitArea');
+    var areaStyleModel = splitAreaModel.getModel('areaStyle');
+    var areaColors = areaStyleModel.get('color');
+
+    var gridRect = gridModel.coordinateSystem.getRect();
+
+    var ticksCoords = axis.getTicksCoords({
+        tickModel: splitAreaModel,
+        clamp: true
+    });
+
+    if (!ticksCoords.length) {
+        return;
+    }
+
+    // For Making appropriate splitArea animation, the color and anid
+    // should be corresponding to previous one if possible.
+    var areaColorsLen = areaColors.length;
+    var lastSplitAreaColors = axisView.__splitAreaColors;
+    var newSplitAreaColors = createHashMap();
+    var colorIndex = 0;
+    if (lastSplitAreaColors) {
+        for (var i = 0; i < ticksCoords.length; i++) {
+            var cIndex = lastSplitAreaColors.get(ticksCoords[i].tickValue);
+            if (cIndex != null) {
+                colorIndex = (cIndex + (areaColorsLen - 1) * i) % areaColorsLen;
+                break;
+            }
+        }
+    }
+
+    var prev = axis.toGlobalCoord(ticksCoords[0].coord);
+
+    var areaStyle = areaStyleModel.getAreaStyle();
+    areaColors = isArray(areaColors) ? areaColors : [areaColors];
+
+    for (var i = 1; i < ticksCoords.length; i++) {
+        var tickCoord = axis.toGlobalCoord(ticksCoords[i].coord);
+
+        var x;
+        var y;
+        var width;
+        var height;
+        if (axis.isHorizontal()) {
+            x = prev;
+            y = gridRect.y;
+            width = tickCoord - x;
+            height = gridRect.height;
+            prev = x + width;
+        }
+        else {
+            x = gridRect.x;
+            y = prev;
+            width = gridRect.width;
+            height = tickCoord - y;
+            prev = y + height;
+        }
+
+        var tickValue = ticksCoords[i - 1].tickValue;
+        tickValue != null && newSplitAreaColors.set(tickValue, colorIndex);
+
+        axisGroup.add(new Rect({
+            anid: tickValue != null ? 'area_' + tickValue : null,
+            shape: {
+                x: x,
+                y: y,
+                width: width,
+                height: height
+            },
+            style: defaults({
+                fill: areaColors[colorIndex]
+            }, areaStyle),
+            silent: true
+        }));
+
+        colorIndex = (colorIndex + 1) % areaColorsLen;
+    }
+
+    axisView.__splitAreaColors = newSplitAreaColors;
+}
+
+function rectCoordAxisHandleRemove(axisView) {
+    axisView.__splitAreaColors = null;
+}
+
+/*
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*   http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing,
+* software distributed under the License is distributed on an
+* "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+* KIND, either express or implied.  See the License for the
+* specific language governing permissions and limitations
+* under the License.
+*/
+
 var axisBuilderAttrs = [
     'axisLine', 'axisTickLabel', 'axisName'
 ];
@@ -41133,7 +41298,7 @@ var CartesianAxisView = AxisView.extend({
     },
 
     remove: function () {
-        this._splitAreaColors = null;
+        rectCoordAxisHandleRemove(this);
     },
 
     /**
@@ -41265,91 +41430,7 @@ var CartesianAxisView = AxisView.extend({
      * @private
      */
     _splitArea: function (axisModel, gridModel) {
-        var axis = axisModel.axis;
-
-        if (axis.scale.isBlank()) {
-            return;
-        }
-
-        var splitAreaModel = axisModel.getModel('splitArea');
-        var areaStyleModel = splitAreaModel.getModel('areaStyle');
-        var areaColors = areaStyleModel.get('color');
-
-        var gridRect = gridModel.coordinateSystem.getRect();
-
-        var ticksCoords = axis.getTicksCoords({
-            tickModel: splitAreaModel,
-            clamp: true
-        });
-
-        if (!ticksCoords.length) {
-            return;
-        }
-
-        // For Making appropriate splitArea animation, the color and anid
-        // should be corresponding to previous one if possible.
-        var areaColorsLen = areaColors.length;
-        var lastSplitAreaColors = this._splitAreaColors;
-        var newSplitAreaColors = createHashMap();
-        var colorIndex = 0;
-        if (lastSplitAreaColors) {
-            for (var i = 0; i < ticksCoords.length; i++) {
-                var cIndex = lastSplitAreaColors.get(ticksCoords[i].tickValue);
-                if (cIndex != null) {
-                    colorIndex = (cIndex + (areaColorsLen - 1) * i) % areaColorsLen;
-                    break;
-                }
-            }
-        }
-
-        var prev = axis.toGlobalCoord(ticksCoords[0].coord);
-
-        var areaStyle = areaStyleModel.getAreaStyle();
-        areaColors = isArray(areaColors) ? areaColors : [areaColors];
-
-        for (var i = 1; i < ticksCoords.length; i++) {
-            var tickCoord = axis.toGlobalCoord(ticksCoords[i].coord);
-
-            var x;
-            var y;
-            var width;
-            var height;
-            if (axis.isHorizontal()) {
-                x = prev;
-                y = gridRect.y;
-                width = tickCoord - x;
-                height = gridRect.height;
-                prev = x + width;
-            }
-            else {
-                x = gridRect.x;
-                y = prev;
-                width = gridRect.width;
-                height = tickCoord - y;
-                prev = y + height;
-            }
-
-            var tickValue = ticksCoords[i - 1].tickValue;
-            tickValue != null && newSplitAreaColors.set(tickValue, colorIndex);
-
-            this._axisGroup.add(new Rect({
-                anid: tickValue != null ? 'area_' + tickValue : null,
-                shape: {
-                    x: x,
-                    y: y,
-                    width: width,
-                    height: height
-                },
-                style: defaults({
-                    fill: areaColors[colorIndex]
-                }, areaStyle),
-                silent: true
-            }));
-
-            colorIndex = (colorIndex + 1) % areaColorsLen;
-        }
-
-        this._splitAreaColors = newSplitAreaColors;
+        rectCoordAxisBuildSplitArea(this, this._axisGroup, axisModel, gridModel);
     }
 });
 
@@ -41595,7 +41676,21 @@ BaseBarSeries.extend({
 
         // If use caps on two sides of bars
         // Only available on tangential polar bar
-        roundCap: false
+        roundCap: false,
+
+        showBackground: false,
+        backgroundStyle: {
+            color: 'rgba(180, 180, 180, 0.2)',
+            borderColor: null,
+            borderWidth: 0,
+            borderType: 'solid',
+            borderRadius: 0,
+            shadowBlur: 0,
+            shadowColor: null,
+            shadowOffsetX: 0,
+            shadowOffsetY: 0,
+            opacity: 1
+        }
     }
 });
 
@@ -41900,14 +41995,26 @@ extendChartView({
 
         var roundCap = seriesModel.get('roundCap', true);
 
+        var drawBackground = seriesModel.get('showBackground', true);
+        var backgroundModel = seriesModel.getModel('backgroundStyle');
+
+        var bgEls = [];
+        var oldBgEls = this._backgroundEls || [];
+
         data.diff(oldData)
             .add(function (dataIndex) {
+                var itemModel = data.getItemModel(dataIndex);
+                var layout = getLayout[coord.type](data, dataIndex, itemModel);
+
+                if (drawBackground) {
+                    var bgEl = createBackgroundEl(coord, isHorizontalOrRadial, layout);
+                    bgEl.useStyle(backgroundModel.getBarItemStyle());
+                    bgEls[dataIndex] = bgEl;
+                }
+
                 if (!data.hasValue(dataIndex)) {
                     return;
                 }
-
-                var itemModel = data.getItemModel(dataIndex);
-                var layout = getLayout[coord.type](data, dataIndex, itemModel);
 
                 if (needsClip) {
                     // Clip will modify the layout params.
@@ -41931,15 +42038,23 @@ extendChartView({
                 );
             })
             .update(function (newIndex, oldIndex) {
-                var el = oldData.getItemGraphicEl(oldIndex);
+                var itemModel = data.getItemModel(newIndex);
+                var layout = getLayout[coord.type](data, newIndex, itemModel);
 
+                if (drawBackground) {
+                    var bgEl = oldBgEls[oldIndex];
+                    bgEl.useStyle(backgroundModel.getBarItemStyle());
+                    bgEls[newIndex] = bgEl;
+
+                    var shape = createBackgroundShape(isHorizontalOrRadial, layout, coord);
+                    updateProps(bgEl, { shape: shape }, animationModel, newIndex);
+                }
+
+                var el = oldData.getItemGraphicEl(oldIndex);
                 if (!data.hasValue(newIndex)) {
                     group.remove(el);
                     return;
                 }
-
-                var itemModel = data.getItemModel(newIndex);
-                var layout = getLayout[coord.type](data, newIndex, itemModel);
 
                 if (needsClip) {
                     var isClipped = clip[coord.type](coordSysClipArea, layout);
@@ -41978,6 +42093,15 @@ extendChartView({
             })
             .execute();
 
+        var bgGroup = this._backgroundGroup || (this._backgroundGroup = new Group());
+        bgGroup.removeAll();
+
+        for (var i = 0; i < bgEls.length; ++i) {
+            bgGroup.add(bgEls[i]);
+        }
+        group.add(bgGroup);
+        this._backgroundEls = bgEls;
+
         this._data = data;
     },
 
@@ -41998,6 +42122,7 @@ extendChartView({
     },
 
     _incrementalRenderLarge: function (params, seriesModel) {
+        this._removeBackground();
         createLarge(seriesModel, this.group, true);
     },
 
@@ -42011,6 +42136,9 @@ extendChartView({
         var group = this.group;
         var data = this._data;
         if (ecModel && ecModel.get('animation') && data && !this._isLargeDraw) {
+            this._removeBackground();
+            this._backgroundEls = [];
+
             data.eachItemGraphicEl(function (el) {
                 if (el.type === 'sector') {
                     removeSector(el.dataIndex, ecModel, el);
@@ -42024,6 +42152,11 @@ extendChartView({
             group.removeAll();
         }
         this._data = null;
+    },
+
+    _removeBackground: function () {
+        this.group.remove(this._backgroundGroup);
+        this._backgroundGroup = null;
     }
 
 });
@@ -42081,7 +42214,12 @@ var elementCreator = {
         dataIndex, layout, isHorizontal,
         animationModel, isUpdate
     ) {
-        var rect = new Rect({shape: extend({}, layout)});
+        var rect = new Rect({
+            shape: extend({}, layout),
+            z2: 1
+        });
+
+        rect.name = 'item';
 
         // Animation
         if (animationModel) {
@@ -42111,8 +42249,11 @@ var elementCreator = {
         var ShapeClass = (!isRadial && roundCap) ? Sausage : Sector;
 
         var sector = new ShapeClass({
-            shape: defaults({clockwise: clockwise}, layout)
+            shape: defaults({clockwise: clockwise}, layout),
+            z2: 1
         });
+
+        sector.name = 'item';
 
         // Animation
         if (animationModel) {
@@ -42233,7 +42374,10 @@ function updateStyle(
 // In case width or height are too small.
 function getLineWidth(itemModel, rawLayout) {
     var lineWidth = itemModel.get(BAR_BORDER_WIDTH_QUERY) || 0;
-    return Math.min(lineWidth, Math.abs(rawLayout.width), Math.abs(rawLayout.height));
+    // width or height may be NaN for empty data
+    var width = isNaN(rawLayout.width) ? Number.MAX_VALUE : Math.abs(rawLayout.width);
+    var height = isNaN(rawLayout.height) ? Number.MAX_VALUE : Math.abs(rawLayout.height);
+    return Math.min(lineWidth, width, height);
 }
 
 
@@ -42265,13 +42409,38 @@ function createLarge(seriesModel, group, incremental) {
     var baseDimIdx = data.getLayout('valueAxisHorizontal') ? 1 : 0;
     startPoint[1 - baseDimIdx] = data.getLayout('valueAxisStart');
 
+    var largeDataIndices = data.getLayout('largeDataIndices');
+    var barWidth = data.getLayout('barWidth');
+
+    var backgroundModel = seriesModel.getModel('backgroundStyle');
+    var drawBackground = seriesModel.get('showBackground', true);
+
+    if (drawBackground) {
+        var points = data.getLayout('largeBackgroundPoints');
+        var backgroundStartPoint = [];
+        backgroundStartPoint[1 - baseDimIdx] = data.getLayout('backgroundStart');
+
+        var bgEl = new LargePath({
+            shape: {points: points},
+            incremental: !!incremental,
+            __startPoint: backgroundStartPoint,
+            __baseDimIdx: baseDimIdx,
+            __largeDataIndices: largeDataIndices,
+            __barWidth: barWidth,
+            silent: true,
+            z2: 0
+        });
+        setLargeBackgroundStyle(bgEl, backgroundModel, data);
+        group.add(bgEl);
+    }
+
     var el = new LargePath({
         shape: {points: data.getLayout('largePoints')},
         incremental: !!incremental,
         __startPoint: startPoint,
         __baseDimIdx: baseDimIdx,
-        __largeDataIndices: data.getLayout('largeDataIndices'),
-        __barWidth: data.getLayout('barWidth')
+        __largeDataIndices: largeDataIndices,
+        __barWidth: barWidth
     });
     group.add(el);
     setLargeStyle(el, seriesModel, data);
@@ -42334,6 +42503,55 @@ function setLargeStyle(el, seriesModel, data) {
     el.style.fill = null;
     el.style.stroke = borderColor;
     el.style.lineWidth = data.getLayout('barWidth');
+}
+
+function setLargeBackgroundStyle(el, backgroundModel, data) {
+    var borderColor = backgroundModel.get('borderColor') || backgroundModel.get('color');
+    var itemStyle = backgroundModel.getItemStyle(['color', 'borderColor']);
+
+    el.useStyle(itemStyle);
+    el.style.fill = null;
+    el.style.stroke = borderColor;
+    el.style.lineWidth = data.getLayout('barWidth');
+}
+
+function createBackgroundShape(isHorizontalOrRadial, layout, coord) {
+    var coordLayout;
+    var isPolar = coord.type === 'polar';
+    if (isPolar) {
+        coordLayout = coord.getArea();
+    }
+    else {
+        coordLayout = coord.grid.getRect();
+    }
+
+    if (isPolar) {
+        return {
+            cx: coordLayout.cx,
+            cy: coordLayout.cy,
+            r0: isHorizontalOrRadial ? coordLayout.r0 : layout.r0,
+            r: isHorizontalOrRadial ? coordLayout.r : layout.r,
+            startAngle: isHorizontalOrRadial ? layout.startAngle : 0,
+            endAngle: isHorizontalOrRadial ? layout.endAngle : Math.PI * 2
+        };
+    }
+    else {
+        return {
+            x: isHorizontalOrRadial ? layout.x : coordLayout.x,
+            y: isHorizontalOrRadial ? coordLayout.y : layout.y,
+            width: isHorizontalOrRadial ? layout.width : coordLayout.width,
+            height: isHorizontalOrRadial ? coordLayout.height : layout.height
+        };
+    }
+}
+
+function createBackgroundEl(coord, isHorizontalOrRadial, layout) {
+    var ElementClz = coord.type === 'polar' ? Sector : Rect;
+    return new ElementClz({
+        shape: createBackgroundShape(isHorizontalOrRadial, layout, coord),
+        silent: true,
+        z2: 0
+    });
 }
 
 /*
@@ -42945,7 +43163,7 @@ piePieceProto.updateData = function (data, idx, firstCreate) {
     toggleItemSelected(
         this,
         data.getItemLayout(idx),
-        seriesModel.isSelected(null, idx),
+        seriesModel.isSelected(data.getName(idx)),
         seriesModel.get('selectedOffset'),
         seriesModel.get('animation')
     );
@@ -43697,7 +43915,7 @@ var labelLayout = function (seriesModel, r, viewWidth, viewHeight, viewLeft, vie
             inside: isLabelInside,
             labelDistance: labelDistance,
             labelAlignTo: labelAlignTo,
-            labelMargin:labelMargin,
+            labelMargin: labelMargin,
             bleedMargin: bleedMargin,
             textRect: textRect,
             text: text,
