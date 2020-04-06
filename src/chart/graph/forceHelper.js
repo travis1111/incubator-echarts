@@ -1,33 +1,33 @@
 /*
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*   http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing,
-* software distributed under the License is distributed on an
-* "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-* KIND, either express or implied.  See the License for the
-* specific language governing permissions and limitations
-* under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
 /*
-* A third-party license is embeded for some of the code in this file:
-* Some formulas were originally copied from "d3.js" with some
-* modifications made for this project.
-* (See more details in the comment of the method "step" below.)
-* The use of the source code of this file is also subject to the terms
-* and consitions of the license of "d3.js" (BSD-3Clause, see
-* </licenses/LICENSE-d3>).
-*/
+ * A third-party license is embeded for some of the code in this file:
+ * Some formulas were originally copied from "d3.js" with some
+ * modifications made for this project.
+ * (See more details in the comment of the method "step" below.)
+ * The use of the source code of this file is also subject to the terms
+ * and consitions of the license of "d3.js" (BSD-3Clause, see
+ * </licenses/LICENSE-d3>).
+ */
 
-import * as vec2 from 'zrender/src/core/vector';
+import * as vec2 from "zrender/src/core/vector";
 
 var scaleAndAdd = vec2.scaleAndAdd;
 
@@ -113,7 +113,8 @@ export function forceLayout(nodes, edges, opts) {
                 vec2.normalize(v12, v12);
 
                 !n1.fixed && scaleAndAdd(n1.p, n1.p, v12, w * d * friction);
-                !n2.fixed && scaleAndAdd(n2.p, n2.p, v12, -(1 - w) * d * friction);
+                !n2.fixed &&
+                    scaleAndAdd(n2.p, n2.p, v12, -(1 - w) * d * friction);
             }
             // Gravity
             for (var i = 0; i < nLen; i++) {
@@ -155,9 +156,9 @@ export function forceLayout(nodes, edges, opts) {
                 }
             }
 
-            friction = friction * 0.992;
+            friction = friction * 0.94;
 
             cb && cb(nodes, edges, friction < 0.01);
-        }
+        },
     };
 }
