@@ -1,41 +1,41 @@
 /*
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*   http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing,
-* software distributed under the License is distributed on an
-* "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-* KIND, either express or implied.  See the License for the
-* specific language governing permissions and limitations
-* under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
-import * as echarts from '../../echarts';
-import * as zrUtil from 'zrender/src/core/util';
-import SymbolDraw from '../helper/SymbolDraw';
-import LineDraw from '../helper/LineDraw';
-import RoamController from '../../component/helper/RoamController';
-import * as roamHelper from '../../component/helper/roamHelper';
-import {onIrrelevantElement} from '../../component/helper/cursorHelper';
-import * as graphic from '../../util/graphic';
-import adjustEdge from './adjustEdge';
-import {getNodeGlobalScale} from './graphHelper';
+import * as echarts from "../../echarts";
+import * as zrUtil from "zrender/src/core/util";
+import SymbolDraw from "../helper/SymbolDraw";
+import LineDraw from "../helper/LineDraw";
+import RoamController from "../../component/helper/RoamController";
+import * as roamHelper from "../../component/helper/roamHelper";
+import { onIrrelevantElement } from "../../component/helper/cursorHelper";
+import * as graphic from "../../util/graphic";
+import adjustEdge from "./adjustEdge";
+import { getNodeGlobalScale } from "./graphHelper";
 
-var FOCUS_ADJACENCY = '__focusNodeAdjacency';
-var UNFOCUS_ADJACENCY = '__unfocusNodeAdjacency';
+var FOCUS_ADJACENCY = "__focusNodeAdjacency";
+var UNFOCUS_ADJACENCY = "__unfocusNodeAdjacency";
 
-var nodeOpacityPath = ['itemStyle', 'opacity'];
-var lineOpacityPath = ['lineStyle', 'opacity'];
+var nodeOpacityPath = ["itemStyle", "opacity"];
+var lineOpacityPath = ["lineStyle", "opacity"];
 
 function getItemOpacity(item, opacityPath) {
-    var opacity = item.getVisual('opacity');
+    var opacity = item.getVisual("opacity");
     return opacity != null ? opacity : item.getModel().get(opacityPath);
 }
 
@@ -55,7 +55,7 @@ function fadeOutItem(item, opacityPath, opacityRatio) {
             if (opct == null || opacityRatio != null) {
                 opct = opacity;
             }
-            child.setStyle('opacity', opct);
+            child.setStyle("opacity", opct);
         }
     });
 }
@@ -67,14 +67,13 @@ function fadeInItem(item, opacityPath) {
     // where current state is copied to elMirror, and support
     // emphasis opacity here.
     el.traverse(function (child) {
-        !child.isGroup && child.setStyle('opacity', opacity);
+        !child.isGroup && child.setStyle("opacity", opacity);
     });
     el.highlight && el.highlight();
 }
 
 export default echarts.extendChartView({
-
-    type: 'graph',
+    type: "graph",
 
     init: function (ecModel, api) {
         var symbolDraw = new SymbolDraw();
@@ -82,7 +81,7 @@ export default echarts.extendChartView({
         var group = this.group;
 
         this._controller = new RoamController(api.getZr());
-        this._controllerHost = {target: group};
+        this._controllerHost = { target: group };
 
         group.add(symbolDraw.group);
         group.add(lineDraw.group);
@@ -104,15 +103,14 @@ export default echarts.extendChartView({
 
         var group = this.group;
 
-        if (coordSys.type === 'view') {
+        if (coordSys.type === "view") {
             var groupNewProp = {
                 position: coordSys.position,
-                scale: coordSys.scale
+                scale: coordSys.scale,
             };
             if (this._firstRender) {
                 group.attr(groupNewProp);
-            }
-            else {
+            } else {
                 graphic.updateProps(group, groupNewProp, seriesModel);
             }
         }
@@ -131,7 +129,7 @@ export default echarts.extendChartView({
 
         clearTimeout(this._layoutTimeout);
         var forceLayout = seriesModel.forceLayout;
-        var layoutAnimation = seriesModel.get('force.layoutAnimation');
+        var layoutAnimation = seriesModel.get("force.layoutAnimation");
         if (forceLayout) {
             this._startForceLayoutIteration(forceLayout, layoutAnimation);
         }
@@ -139,73 +137,97 @@ export default echarts.extendChartView({
         data.eachItemGraphicEl(function (el, idx) {
             var itemModel = data.getItemModel(idx);
             // Update draggable
-            el.off('drag').off('dragend');
-            var draggable = itemModel.get('draggable');
+            el.off("drag").off("dragend");
+            var draggable = itemModel.get("draggable");
             if (draggable) {
-                el.on('drag', function () {
-                    if (forceLayout) {
-                        forceLayout.warmUp();
-                        !this._layouting
-                            && this._startForceLayoutIteration(forceLayout, layoutAnimation);
-                        forceLayout.setFixed(idx);
-                        // Write position back to layout
-                        data.setItemLayout(idx, el.position);
-                    }
-                }, this).on('dragend', function () {
-                    if (forceLayout) {
-                        forceLayout.setUnfixed(idx);
-                    }
-                }, this);
+                el.on(
+                    "drag",
+                    function () {
+                        if (forceLayout) {
+                            forceLayout.warmUp();
+                            !this._layouting &&
+                                this._startForceLayoutIteration(
+                                    forceLayout,
+                                    layoutAnimation
+                                );
+                            forceLayout.setFixed(idx);
+                            // Write position back to layout
+                            data.setItemLayout(idx, el.position);
+                        }
+                    },
+                    this
+                ).on(
+                    "dragend",
+                    function () {
+                        if (forceLayout) {
+                            // do not set unfixed
+                            forceLayout.setUnfixed(idx);
+                        }
+                    },
+                    this
+                );
             }
             el.setDraggable(draggable && forceLayout);
 
-            el[FOCUS_ADJACENCY] && el.off('mouseover', el[FOCUS_ADJACENCY]);
-            el[UNFOCUS_ADJACENCY] && el.off('mouseout', el[UNFOCUS_ADJACENCY]);
+            el[FOCUS_ADJACENCY] && el.off("mouseover", el[FOCUS_ADJACENCY]);
+            el[UNFOCUS_ADJACENCY] && el.off("mouseout", el[UNFOCUS_ADJACENCY]);
 
-            if (itemModel.get('focusNodeAdjacency')) {
-                el.on('mouseover', el[FOCUS_ADJACENCY] = function () {
-                    graphView._clearTimer();
-                    api.dispatchAction({
-                        type: 'focusNodeAdjacency',
-                        seriesId: seriesModel.id,
-                        dataIndex: el.dataIndex
-                    });
-                });
-                el.on('mouseout', el[UNFOCUS_ADJACENCY] = function () {
-                    graphView._dispatchUnfocus(api);
-                });
+            if (itemModel.get("focusNodeAdjacency")) {
+                el.on(
+                    "mouseover",
+                    (el[FOCUS_ADJACENCY] = function () {
+                        graphView._clearTimer();
+                        api.dispatchAction({
+                            type: "focusNodeAdjacency",
+                            seriesId: seriesModel.id,
+                            dataIndex: el.dataIndex,
+                        });
+                    })
+                );
+                el.on(
+                    "mouseout",
+                    (el[UNFOCUS_ADJACENCY] = function () {
+                        graphView._dispatchUnfocus(api);
+                    })
+                );
             }
-
         }, this);
 
         data.graph.eachEdge(function (edge) {
             var el = edge.getGraphicEl();
 
-            el[FOCUS_ADJACENCY] && el.off('mouseover', el[FOCUS_ADJACENCY]);
-            el[UNFOCUS_ADJACENCY] && el.off('mouseout', el[UNFOCUS_ADJACENCY]);
+            el[FOCUS_ADJACENCY] && el.off("mouseover", el[FOCUS_ADJACENCY]);
+            el[UNFOCUS_ADJACENCY] && el.off("mouseout", el[UNFOCUS_ADJACENCY]);
 
-            if (edge.getModel().get('focusNodeAdjacency')) {
-                el.on('mouseover', el[FOCUS_ADJACENCY] = function () {
-                    graphView._clearTimer();
-                    api.dispatchAction({
-                        type: 'focusNodeAdjacency',
-                        seriesId: seriesModel.id,
-                        edgeDataIndex: edge.dataIndex
-                    });
-                });
-                el.on('mouseout', el[UNFOCUS_ADJACENCY] = function () {
-                    graphView._dispatchUnfocus(api);
-                });
+            if (edge.getModel().get("focusNodeAdjacency")) {
+                el.on(
+                    "mouseover",
+                    (el[FOCUS_ADJACENCY] = function () {
+                        graphView._clearTimer();
+                        api.dispatchAction({
+                            type: "focusNodeAdjacency",
+                            seriesId: seriesModel.id,
+                            edgeDataIndex: edge.dataIndex,
+                        });
+                    })
+                );
+                el.on(
+                    "mouseout",
+                    (el[UNFOCUS_ADJACENCY] = function () {
+                        graphView._dispatchUnfocus(api);
+                    })
+                );
             }
         });
 
-        var circularRotateLabel = seriesModel.get('layout') === 'circular'
-            && seriesModel.get('circular.rotateLabel');
-        var cx = data.getLayout('cx');
-        var cy = data.getLayout('cy');
+        var circularRotateLabel =
+            seriesModel.get("layout") === "circular" &&
+            seriesModel.get("circular.rotateLabel");
+        var cx = data.getLayout("cx");
+        var cy = data.getLayout("cy");
         data.eachItemGraphicEl(function (el, idx) {
             var itemModel = data.getItemModel(idx);
-            var labelRotate = itemModel.get('label.rotate') || 0;
+            var labelRotate = itemModel.get("label.rotate") || 0;
             var symbolPath = el.getSymbolPath();
             if (circularRotateLabel) {
                 var pos = data.getItemLayout(idx);
@@ -217,26 +239,22 @@ export default echarts.extendChartView({
                 if (isLeft) {
                     rad = rad - Math.PI;
                 }
-                var textPosition = isLeft ? 'left' : 'right';
+                var textPosition = isLeft ? "left" : "right";
                 graphic.modifyLabelStyle(
                     symbolPath,
                     {
                         textRotation: -rad,
                         textPosition: textPosition,
-                        textOrigin: 'center'
+                        textOrigin: "center",
                     },
                     {
-                        textPosition: textPosition
+                        textPosition: textPosition,
                     }
                 );
-            }
-            else {
-                graphic.modifyLabelStyle(
-                    symbolPath,
-                    {
-                        textRotation: labelRotate *= Math.PI / 180
-                    }
-                );
+            } else {
+                graphic.modifyLabelStyle(symbolPath, {
+                    textRotation: (labelRotate *= Math.PI / 180),
+                });
             }
         });
 
@@ -255,11 +273,10 @@ export default echarts.extendChartView({
         this._unfocusDelayTimer = setTimeout(function () {
             self._unfocusDelayTimer = null;
             api.dispatchAction({
-                type: 'unfocusNodeAdjacency',
-                seriesId: self._model.id
+                type: "unfocusNodeAdjacency",
+                seriesId: self._model.id,
             });
         }, 500);
-
     },
 
     _clearTimer: function () {
@@ -323,11 +340,10 @@ export default echarts.extendChartView({
         (function step() {
             forceLayout.step(function (stopped) {
                 self.updateLayout(self._model);
-                (self._layouting = !stopped) && (
-                    layoutAnimation
+                (self._layouting = !stopped) &&
+                    (layoutAnimation
                         ? (self._layoutTimeout = setTimeout(step, 16))
-                        : step()
-                );
+                        : step());
             });
         })();
     },
@@ -340,43 +356,56 @@ export default echarts.extendChartView({
         controller.setPointerChecker(function (e, x, y) {
             var rect = group.getBoundingRect();
             rect.applyTransform(group.transform);
-            return rect.contain(x, y)
-                && !onIrrelevantElement(e, api, seriesModel);
+            return (
+                rect.contain(x, y) && !onIrrelevantElement(e, api, seriesModel)
+            );
         });
 
-        if (seriesModel.coordinateSystem.type !== 'view') {
+        if (seriesModel.coordinateSystem.type !== "view") {
             controller.disable();
             return;
         }
-        controller.enable(seriesModel.get('roam'));
-        controllerHost.zoomLimit = seriesModel.get('scaleLimit');
+        controller.enable(seriesModel.get("roam"));
+        controllerHost.zoomLimit = seriesModel.get("scaleLimit");
         controllerHost.zoom = seriesModel.coordinateSystem.getZoom();
 
         controller
-            .off('pan')
-            .off('zoom')
-            .on('pan', function (e) {
+            .off("pan")
+            .off("zoom")
+            .on("pan", function (e) {
                 roamHelper.updateViewOnPan(controllerHost, e.dx, e.dy);
                 api.dispatchAction({
                     seriesId: seriesModel.id,
-                    type: 'graphRoam',
+                    type: "graphRoam",
                     dx: e.dx,
-                    dy: e.dy
+                    dy: e.dy,
                 });
             })
-            .on('zoom', function (e) {
-                roamHelper.updateViewOnZoom(controllerHost, e.scale, e.originX, e.originY);
-                api.dispatchAction({
-                    seriesId: seriesModel.id,
-                    type: 'graphRoam',
-                    zoom: e.scale,
-                    originX: e.originX,
-                    originY: e.originY
-                });
-                this._updateNodeAndLinkScale();
-                adjustEdge(seriesModel.getGraph(), getNodeGlobalScale(seriesModel));
-                this._lineDraw.updateLayout();
-            }, this);
+            .on(
+                "zoom",
+                function (e) {
+                    roamHelper.updateViewOnZoom(
+                        controllerHost,
+                        e.scale,
+                        e.originX,
+                        e.originY
+                    );
+                    api.dispatchAction({
+                        seriesId: seriesModel.id,
+                        type: "graphRoam",
+                        zoom: e.scale,
+                        originX: e.originX,
+                        originY: e.originY,
+                    });
+                    this._updateNodeAndLinkScale();
+                    adjustEdge(
+                        seriesModel.getGraph(),
+                        getNodeGlobalScale(seriesModel)
+                    );
+                    this._lineDraw.updateLayout();
+                },
+                this
+            );
     },
 
     _updateNodeAndLinkScale: function () {
@@ -387,7 +416,7 @@ export default echarts.extendChartView({
         var invScale = [nodeScale, nodeScale];
 
         data.eachItemGraphicEl(function (el, idx) {
-            el.attr('scale', invScale);
+            el.attr("scale", invScale);
         });
     },
 
@@ -401,5 +430,5 @@ export default echarts.extendChartView({
     remove: function (ecModel, api) {
         this._symbolDraw && this._symbolDraw.remove();
         this._lineDraw && this._lineDraw.remove();
-    }
+    },
 });
