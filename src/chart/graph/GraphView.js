@@ -161,7 +161,7 @@ export default echarts.extendChartView({
                     function () {
                         if (forceLayout) {
                             // do not set unfixed
-                            forceLayout.setUnfixed(idx);
+                            // forceLayout.setUnfixed(idx);
                         }
                     },
                     this
